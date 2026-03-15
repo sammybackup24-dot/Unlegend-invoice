@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Unlegend Studio Invoice Generator</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+background:#111;
+color:white;
+padding:30px;
+}
+
+.container{
+max-width:800px;
+margin:auto;
+background:#1c1c1c;
+padding:25px;
+border-radius:10px;
+}
+
+h1{
+text-align:center;
+color:#00ffd0;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:none;
+}
+
+button{
+padding:12px 20px;
+margin-top:10px;
+border:none;
+background:#00ffd0;
+font-weight:bold;
+cursor:pointer;
+border-radius:6px;
+}
+
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+td,th{
+border:1px solid #333;
+padding:10px;
+}
+
+.share-buttons{
+display:flex;
+gap:10px;
+margin-top:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Unlegend Studio Invoice</h1>
+
+<label>Client Name</label>
+<input id="clientName">
+
+<label>Email</label>
+<input id="email">
+
+<label>Service</label>
+<input id="service">
+
+<label>Hours / Sessions</label>
+<input id="hours" type="number">
+
+<label>Rate (₹)</label>
+<input id="rate" type="number">
+
+<button onclick="addService()">Add Service</button>
+
+<table id="invoiceTable">
+<tr>
+<th>Service</th>
+<th>Hours/Session</th>
+<th>Rate</th>
+<th>Total</th>
+</tr>
+</table>
+
+<h2>Total: ₹ <span id="grandTotal">0</span></h2>
+
+<button onclick="generatePDF()">Generate Invoice PDF</button>
+
+<div class="share-buttons">
+
+<button onclick="sendWhatsapp()">Share WhatsApp</button>
+
+<button onclick="sendEmail()">Share Email</button>
+
+</div>
+
+</div>
+
+<script>
+
+let services = []
+let total = 0
+
+function addService(){
+
+let service = document.getElementById("service").value
+let hours = document.getElementById("hours").value
+let rate = document.getElementById("rate").value
+
+let serviceTotal = hours * rate
+
+services.push({service,hours,rate,serviceTotal})
+
+total += serviceTotal
+
+let table = document.getElementById("invoiceTable")
+
+let row = table.insertRow()
+
+row.insertCell(0).innerText = service
+row.insertCell(1).innerText = hours
+row.insertCell(2).innerText = rate
+row.insertCell(3).innerText = serviceTotal
+
+document.getElementById("grandTotal").innerText = total
+
+}
+
+function generatePDF(){
+
+const { jsPDF } = window.jspdf
+let doc = new jsPDF()
+
+let y = 20
+
+doc.setFontSize(18)
+doc.text("Unlegend Studio Invoice",20,y)
+
+y+=10
+
+let client = document.getElementById("clientName").value
+
+doc.setFontSize(12)
+doc.text("Client: "+client,20,y)
+
+y+=10
+
+services.forEach(s=>{
+
+doc.text(`${s.service} | ${s.hours} x ₹${s.rate} = ₹${s.serviceTotal}`,20,y)
+
+y+=10
+
+})
+
+y+=10
+
+doc.text("Total: ₹"+total,20,y)
+
+doc.save("unlegend_invoice.pdf")
+
+}
+
+function sendWhatsapp(){
+
+let client = document.getElementById("clientName").value
+
+let message = `Unlegend Studio Invoice\nClient: ${client}\nTotal: ₹${total}`
+
+let url = `https://wa.me/?text=${encodeURIComponent(message)}`
+
+window.open(url)
+
+}
+
+function sendEmail(){
+
+let client = document.getElementById("clientName").value
+
+let email = document.getElementById("email").value
+
+let subject = "Unlegend Studio Invoice"
+
+let body = `Client: ${client}\nTotal: ₹${total}`
+
+window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
+
+}
+
+</script>
+
+</body>
+</html>
